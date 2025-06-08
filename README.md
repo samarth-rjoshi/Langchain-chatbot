@@ -20,7 +20,6 @@ A sophisticated chatbot application built using LangChain and Streamlit that pro
 ├── components.py      # UI components and utilities
 ├── pdf.py            # PDF processing utilities
 ├── requirements.txt   # Project dependencies
-├── vectorstore.ipynb  # Notebook for vector store operations
 └── data/             # Documentation data directory
     ├── Langchain/
     ├── Langserve/
