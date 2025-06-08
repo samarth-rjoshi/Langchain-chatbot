@@ -8,21 +8,31 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import Qdrant
 import os
 
-# Set environment variable for HuggingFaceHub API
-os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
+# Read environment variables from .env file
+def load_env_file(env_path):
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and not line.startswith('//'):
+                key, value = line.split('=', 1)
+                os.environ[key.strip()] = value.strip()
+
+# Load environment variables
+load_env_file('.env')
 
 # Initialize embeddings
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 # Initialize Qdrant client
-url_qdrant = "https://ff0ebcb9-0815-4aee-8810-f3cdff8c1dd5.europe-west3-0.gcp.cloud.qdrant.io"
-api_key_qdrant = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwiZXhwIjoxNzQzMDY0NjI4fQ.jp5Zjt5LhyA_gWQTefoREQbOFyeShNoWyqkQFnYoOnI"
+url_qdrant = os.getenv('QDRANT_URL')
+api_key_qdrant = os.getenv('QDRANT_API_KEY')
+collection_name = os.getenv('COLLECTION_NAME')
 qdrant_client = QdrantClient(url=url_qdrant, api_key=api_key_qdrant)
 
 # Initialize Qdrant vector store
 qdrant_db = Qdrant(
     client=qdrant_client,
-    collection_name="langchain",
+    collection_name=collection_name,
     embeddings=embeddings
 )
 
