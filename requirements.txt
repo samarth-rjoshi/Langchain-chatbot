@@ -1,0 +1,6 @@
+langchain
+qdrant_client
+sentence-transformers
+pypdf
+bs4
+streamlit
