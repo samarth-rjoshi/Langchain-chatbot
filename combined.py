@@ -7,21 +7,34 @@ from qdrant_client import QdrantClient
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import Qdrant
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Get environment variables
+huggingface_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+qdrant_langchain_url = os.getenv("QDRANT_LANGCHAIN_URL")
+qdrant_langchain_api_key = os.getenv("QDRANT_LANGCHAIN_API_KEY")
+qdrant_haystack_url = os.getenv("QDRANT_HAYSTACK_URL")
+qdrant_haystack_api_key = os.getenv("QDRANT_HAYSTACK_API_KEY")
 
 # Set environment variable for HuggingFaceHub API
-os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = huggingface_token
 
 # Initialize embeddings
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 # Initialize Qdrant clients
-url_langchain = "https://838581f9-41df-47dc-a452-47ea8f1e1edc.us-east4-0.gcp.cloud.qdrant.io:6333"
-api_key_langchain = "7QBIL3BHx33BOqbHlsSIrn5in7kTX4OLzn5FAXQYPFP7Y1KFYbagpg"
-qdrant_client_langchain = QdrantClient(url=url_langchain, api_key=api_key_langchain)
+qdrant_client_langchain = QdrantClient(
+    url=qdrant_langchain_url,
+    api_key=qdrant_langchain_api_key
+)
 
-url_haystack = "https://dc9421df-f74d-40b4-bec3-60e253854901.us-east4-0.gcp.cloud.qdrant.io:6333"
-api_key_haystack = "J__T4uhGMc1tqUW2aIn-Ik9ay1f0NIzeixs1APrkdEWqHmZcdUbpnQ"
-qdrant_client_haystack = QdrantClient(url=url_haystack, api_key=api_key_haystack)
+qdrant_client_haystack = QdrantClient(
+    url=qdrant_haystack_url,
+    api_key=qdrant_haystack_api_key
+)
 
 # Initialize Qdrant vector stores
 qdrant_langchain = Qdrant(
