@@ -2,6 +2,8 @@ langchain
 qdrant_client
 sentence-transformers
 pypdf
+PyPDF2
 bs4
 streamlit
 python-dotenv
+tqdm
