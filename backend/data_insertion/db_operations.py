@@ -39,7 +39,7 @@ def query_documents(query):
             collection_name=COLLECTION_NAME,
             query=query_vector,
             with_payload=["text"],
-            limit=20
+            limit=5
         )
         for point in result.points:
             results.append(point.payload["text"])

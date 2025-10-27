@@ -24,13 +24,13 @@ llm = ChatOpenAI(model=GENERATION_MODEL, base_url=OPENAI_API_BASE, api_key=OPENA
 
 
 # Define the state schema
-class GraphState(TypedDict):
+class State(TypedDict):
     query: str
     retrieved_docs: List[dict]
     answer: str
 
 
-def retrieve(state: GraphState) -> GraphState:
+def retrieve(state):
     """
     Retrieve relevant documents from Qdrant based on the query.
     Uses functions from data_insertion folder.
@@ -43,7 +43,7 @@ def retrieve(state: GraphState) -> GraphState:
     return state
 
 
-def generate(state: GraphState) -> GraphState:
+def generate(state):
     """
     Generate an answer based on the query and retrieved documents.
     """
@@ -72,65 +72,21 @@ def generate(state: GraphState) -> GraphState:
         state['answer'] = "Sorry, I encountered an error while generating the answer."
         return state
 
-    
+langchain_graph = (
+    StateGraph(State)
+    .add_node("retrieve", retrieve)
+    .add_node("generate", generate)
+    .add_edge(START, "retrieve")
+    .add_edge("retrieve", "generate")
+    .add_edge("generate", END)
+    .compile()
+)
+
+# Step 4: Run
+result = langchain_graph.invoke({"query": "What is LangGraph?"})
+print(result["answer"])
 
 
-    
 
 
-def create_graph() -> StateGraph:
-    """
-    Create and return the LangGraph with retrieve and generate nodes.
-    """
-    # Create a new graph
-    workflow = StateGraph(GraphState)
-    
-    # Add nodes
-    workflow.add_node("retrieve", retrieve)
-    workflow.add_node("generate", generate)
-    
-    # Define the flow: START -> retrieve -> generate -> END
-    workflow.add_edge(START, "retrieve")
-    workflow.add_edge("retrieve", "generate")
-    workflow.add_edge("generate", END)
-    
-    # Compile and return the graph
-    app = workflow.compile()
-    return app
-
-
-def run_query(query: str) -> dict:
-    """
-    Execute the graph with a given query.
-    
-    Args:
-        query: The user's question
-        
-    Returns:
-        The final state containing the answer
-    """
-    # Create the graph
-    app = create_graph()
-    
-    # Initial state
-    initial_state = GraphState(
-        query=query,
-        retrieved_docs=[],
-        answer=""
-    )
-    
-    # Run the graph
-    result = app.invoke(initial_state)
-    
-    return result
-
-
-if __name__ == "__main__":
-    # Example usage
-    query = "What is LangChain?"
-    result = run_query(query)
-    print("\n" + "="*50)
-    print("Query:", result['query'])
-    print("\nAnswer:", result['answer'])
-    print("="*50)
 
