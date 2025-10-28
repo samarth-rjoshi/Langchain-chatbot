@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from langgraph.graph import StateGraph, START, END
 from langchain_openai import ChatOpenAI
+import re
+
 
 # Import functions from data_insertion folder
 from data_insertion.db_operations import query_documents
@@ -53,19 +55,19 @@ def generate(state):
     retrieved_docs = state['retrieved_docs']
     try:
     
-        context = "\n\n".join(retrieved_docs)
 
         prompt = f"""Based on the following context, please answer the question.
 
     Context:
-    {context}
+    {retrieved_docs}
 
     Question: {query}
 
     Answer:"""
-        breakpoint()
+        
         response = llm.invoke(prompt)
-        state['answer'] = response.content
+        clean_text = re.sub(r"<think>.*?</think>", "", response.content, flags=re.DOTALL).strip()
+        state['answer'] = clean_text
         return state
     except Exception as e:
         print(f"Error generating answer: {e}")
@@ -81,10 +83,6 @@ langchain_graph = (
     .add_edge("generate", END)
     .compile()
 )
-
-# Step 4: Run
-result = langchain_graph.invoke({"query": "What is LangGraph?"})
-print(result["answer"])
 
 
 

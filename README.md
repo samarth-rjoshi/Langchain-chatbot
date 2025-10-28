@@ -1,37 +1,49 @@
 # LangChain Documentation Chatbot
 
-A sophisticated chatbot application built using LangChain and Streamlit that provides intelligent responses to queries about LangChain and Haystack frameworks. The chatbot uses advanced language models and vector stores to deliver accurate and context-aware answers.
+A sophisticated chatbot application built using LangChain, LangGraph, Flask, and Angular that provides intelligent responses to queries about LangChain documentation. The chatbot uses advanced language models, vector stores, and a custom LangGraph workflow to deliver accurate and context-aware answers.
 
 ## Features
 
-- 🤖 Interactive chatbot interface using Streamlit
-- 📚 Support for both LangChain and Haystack documentation
+- 🤖 Interactive chatbot interface using Angular
+- 🔄 LangGraph-powered RAG (Retrieval-Augmented Generation) workflow
+- 🌐 Flask REST API backend
+- 📚 Comprehensive LangChain documentation coverage
 - 🔍 Vector search using Qdrant for efficient document retrieval
-- 🎯 Context-aware responses using Mistral-7B model
+- 🎯 Context-aware responses using OpenAI models
 - 💾 Persistent chat history
 - 🎨 Beautiful and responsive UI
 
 ## Project Structure
 
 ```
-├── app.py              # Main Streamlit application
-├── c.py               # Alternative implementation with custom styling
-├── combined.py        # Combined LangChain and Haystack implementation
-├── components.py      # UI components and utilities
-├── pdf.py            # PDF processing utilities
-├── requirements.txt   # Project dependencies
-└── data/             # Documentation data directory
-    ├── Langchain/
-    ├── Langserve/
-    ├── Langsmith/
-    └── paper/
+├── backend/
+│   ├── api/                    # Flask REST API
+│   │   ├── app.py             # Main Flask application
+│   │   ├── run.sh             # Unix startup script
+│   │   ├── run.bat            # Windows startup script
+│   │   └── README.md          # API documentation
+│   ├── langgraph_comp/        # LangGraph workflow
+│   │   └── graph.py           # RAG workflow implementation
+│   ├── data_insertion/        # Data processing and insertion
+│   │   ├── db_operations.py   # Qdrant database operations
+│   │   ├── insertion.py       # Document insertion logic
+│   │   └── data/              # Documentation data
+│   └── main.py                # Backend entry point
+├── frontend/                   # Angular frontend
+│   ├── src/
+│   │   ├── app.js             # Angular application
+│   │   └── style.css          # Styles
+│   ├── index.html             # Main HTML file
+│   └── package.json           # Frontend dependencies
+├── requirements.txt           # Python dependencies
+└── README.md                  # This file
 ```
 
 ## Prerequisites
 
 - Python 3.11+
-- Pip package manager
-- HuggingFace API token
+- Node.js 18+ and npm
+- OpenAI API access
 - Qdrant cloud account and API keys
 
 ## Installation
@@ -53,44 +65,85 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Set up environment variables:
-Create a `.env` file in the root directory and add your API keys:
+4. Install frontend dependencies:
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+5. Set up environment variables:
+Create a `.env` file in the `backend` directory and add your API keys:
 ```env
-HUGGINGFACEHUB_API_TOKEN=your_huggingface_token
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_API_BASE=https://api.openai.com/v1
+EMBEDDING_MODEL=text-embedding-ada-002
+GENERATION_MODEL=gpt-3.5-turbo
 QDRANT_URL=your_qdrant_url
 QDRANT_API_KEY=your_qdrant_api_key
 ```
 
 ## Running the Application
 
-1. Start the Streamlit application:
+### Backend (Flask API)
+
+1. Start the Flask API server:
+
+**On Unix/Linux/Mac:**
 ```bash
-streamlit run app.py
+cd backend/api
+./run.sh
 ```
 
-2. Alternative implementations:
+**On Windows:**
 ```bash
-streamlit run c.py         # Run the custom-styled version
-streamlit run combined.py  # Run the combined LangChain-Haystack version
+cd backend\api
+run.bat
 ```
+
+**Or directly with Python:**
+```bash
+python backend/api/app.py
+```
+
+The API will be available at `http://localhost:8000`
+
+### Frontend (Angular)
+
+1. In a new terminal, start the frontend development server:
+```bash
+cd frontend
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173`
+
+2. Open your browser and navigate to `http://localhost:5173` to use the chatbot!
 
 ## Features in Detail
+
+### LangGraph Workflow
+- Custom RAG workflow with retrieve and generate nodes
+- Efficient document retrieval from Qdrant vector store
+- Context-aware answer generation using OpenAI models
+- Seamless integration with Flask API
+
+### REST API (Flask)
+- **POST /chat**: Main endpoint for chatbot interactions
+- **GET /health**: Health check endpoint
+- CORS-enabled for frontend communication
+- Error handling and logging
 
 ### Vector Store Integration
 - Uses Qdrant as a vector store for efficient document retrieval
 - Supports multiple collections for different documentation sources
 - Implements semantic search for accurate document matching
 
-### Language Model
-- Integrates with Mistral-7B-Instruct model through HuggingFace
-- Configured for optimal response generation
-- Customizable temperature and token settings
-
-### User Interface
+### User Interface (Angular)
 - Clean and modern design with custom CSS styling
-- Responsive chat interface
-- Support for code syntax highlighting
-- Easy-to-use document source selection
+- Real-time chat interface with loading indicators
+- Message timestamps
+- Responsive design for all screen sizes
 
 ## Contributing
 
