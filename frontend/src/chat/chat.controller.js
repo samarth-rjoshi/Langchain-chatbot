@@ -1,14 +1,20 @@
 import angular from 'angular';
 
 angular.module('chatApp')
-    .controller('ChatController', ['$scope', 'ChatService', '$timeout', function($scope, ChatService, $timeout) {
+    .controller('ChatController', ['$scope', 'ChatService', '$timeout', '$rootScope', 'AuthService', function($scope, ChatService, $timeout, $rootScope, AuthService) {
         $scope.messages = [];
         $scope.userInput = '';
         $scope.isLoading = false;
+        
+        // Bind rootScope values to scope for template access
+        $scope.currentUser = $rootScope.currentUser;
+        $scope.$watch(function() { return $rootScope.currentUser; }, function(newVal) {
+            $scope.currentUser = newVal;
+        });
 
         $scope.messages.push({
             sender: 'bot',
-            text: 'Hello! I\'m your Langchain chatbot. How can I help you today?',
+            text: `Hello${$rootScope.currentUser ? ', ' + $rootScope.currentUser : ''}! I'm your Langchain chatbot. How can I help you today?`,
             time: formatTime(new Date())
         });
 
@@ -41,15 +47,34 @@ angular.module('chatApp')
                 })
                 .catch(function(error) {
                     console.error('Error:', error);
-                    const errorMessage = {
-                        sender: 'bot',
-                        text: 'Sorry, I encountered an error. Please try again.',
-                        time: formatTime(new Date())
-                    };
-                    $scope.messages.push(errorMessage);
+                    // Handle authentication errors
+                    if (error.status === 401) {
+                        $rootScope.authenticated = false;
+                        $rootScope.currentUser = null;
+                        const errorMessage = {
+                            sender: 'bot',
+                            text: 'Your session has expired. Please log in again.',
+                            time: formatTime(new Date())
+                        };
+                        $scope.messages.push(errorMessage);
+                    } else {
+                        const errorMessage = {
+                            sender: 'bot',
+                            text: 'Sorry, I encountered an error. Please try again.',
+                            time: formatTime(new Date())
+                        };
+                        $scope.messages.push(errorMessage);
+                    }
                     $scope.isLoading = false;
                     $timeout(scrollToBottom, 100);
                 });
+        };
+
+        $scope.logout = function() {
+            AuthService.logout().then(function() {
+                $rootScope.authenticated = false;
+                $rootScope.currentUser = null;
+            });
         };
 
         function formatTime(date) {
@@ -65,5 +90,6 @@ angular.module('chatApp')
             }
         }
     }]);
+
 
 

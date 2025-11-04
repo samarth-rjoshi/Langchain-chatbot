@@ -1,0 +1,56 @@
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1>Welcome Back</h1>
+            <p>Sign in to access the Langchain Chatbot</p>
+        </div>
+        
+        <form ng-submit="login()" class="login-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input 
+                    type="text" 
+                    id="username"
+                    ng-model="username" 
+                    placeholder="Enter your username"
+                    class="form-input"
+                    ng-disabled="isLoading"
+                    ng-keypress="handleKeyPress($event)"
+                    autofocus
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password"
+                    ng-model="password" 
+                    placeholder="Enter your password"
+                    class="form-input"
+                    ng-disabled="isLoading"
+                    ng-keypress="handleKeyPress($event)"
+                    required
+                >
+            </div>
+            
+            <div ng-if="error" class="error-message">
+                {{ error }}
+            </div>
+            
+            <button 
+                type="submit" 
+                class="login-button"
+                ng-disabled="!username || !password || isLoading">
+                <span ng-if="!isLoading">Sign In</span>
+                <span ng-if="isLoading">Signing in...</span>
+            </button>
+        </form>
+        
+        <div class="login-footer">
+            <p>Demo: Enter any username and password to continue</p>
+        </div>
+    </div>
+</div>
+

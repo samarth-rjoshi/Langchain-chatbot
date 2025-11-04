@@ -1,7 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response, session
 from flask_cors import CORS
 import sys
 import os
+import uuid
+from functools import wraps
 
 # Add parent directory to path to import langgraph_comp
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -9,9 +11,120 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from langgraph_comp.graph import langchain_graph
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-' + str(uuid.uuid4()))
+CORS(app, supports_credentials=True)
+
+def login_required(f):
+    """Decorator to check if user is logged in"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({
+                'error': 'Authentication required',
+                'response': 'Please log in to access this resource.'
+            }), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/login', methods=['POST'])
+def login():
+    """
+    Login endpoint that authenticates user and sets session.
+    Expects JSON: { "username": "username", "password": "password" }
+    Returns JSON: { "status": "success", "message": "Login successful" }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'username' not in data or 'password' not in data:
+            return jsonify({
+                'error': 'Missing credentials',
+                'message': 'Please provide both username and password.'
+            }), 400
+        
+        username = data['username']
+        password = data['password']
+        
+        # Simple authentication (in production, use proper password hashing and database)
+        # For demo purposes, accept any non-empty username/password
+        if not username.strip() or not password.strip():
+            return jsonify({
+                'error': 'Invalid credentials',
+                'message': 'Username and password cannot be empty.'
+            }), 401
+        
+        # Generate session ID
+        session_id = str(uuid.uuid4())
+        
+        # Store user info in session
+        session['user_id'] = session_id
+        session['username'] = username
+        session['logged_in'] = True
+        
+        print(f"User logged in: {username} (session_id: {session_id})")
+        
+        # Create response with JSON data
+        response = make_response(jsonify({
+            'status': 'success',
+            'message': 'Login successful',
+            'username': username
+        }), 200)
+        
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error in login endpoint: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'message': 'Sorry, I encountered an error processing your login request.'
+        }), 500
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    """
+    Logout endpoint that clears session.
+    Returns JSON: { "status": "success", "message": "Logged out successfully" }
+    """
+    try:
+        username = session.get('username', 'Unknown')
+        session.clear()
+        
+        print(f"User logged out: {username}")
+        
+        response = make_response(jsonify({
+            'status': 'success',
+            'message': 'Logged out successfully'
+        }), 200)
+        
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error in logout endpoint: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'message': 'Sorry, I encountered an error processing your logout request.'
+        }), 500
+
+@app.route('/check-auth', methods=['GET'])
+def check_auth():
+    """
+    Check if user is authenticated.
+    Returns JSON: { "authenticated": true/false, "username": "username" }
+    """
+    if 'logged_in' in session and session['logged_in']:
+        return jsonify({
+            'authenticated': True,
+            'username': session.get('username', 'Unknown')
+        }), 200
+    else:
+        return jsonify({
+            'authenticated': False
+        }), 200
 
 @app.route('/chat', methods=['POST'])
+@login_required
 def chat():
     """
     Chat endpoint that receives user messages and returns bot responses.
@@ -46,7 +159,7 @@ def chat():
         
         print(f"Generated response: {bot_response}")
         
-        # Return the response
+        # Return the response (session is already set during login)
         return jsonify({
             'response': bot_response,
             'status': 'success'

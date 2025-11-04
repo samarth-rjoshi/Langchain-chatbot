@@ -7,12 +7,22 @@
     <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
-    <chat-widget></chat-widget>
+    <div ng-if="!authenticated">
+        <login-widget></login-widget>
+    </div>
+    
+    <div ng-if="authenticated">
+        <chat-widget></chat-widget>
+    </div>
     
     <script type="module" src="/src/app.js"></script>
+    <script type="module" src="/src/auth.service.js"></script>
     <script type="module" src="/src/chat.service.js"></script>
+    <script type="module" src="/src/login/login.controller.js"></script>
+    <script type="module" src="/src/login/login.component.js"></script>
     <script type="module" src="/src/chat/chat.controller.js"></script>
     <script type="module" src="/src/chat/chat.component.js"></script>
 </body>
 </html>
+
 
