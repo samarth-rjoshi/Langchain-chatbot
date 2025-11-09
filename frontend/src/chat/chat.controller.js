@@ -1,7 +1,7 @@
 import angular from 'angular';
 
 angular.module('chatApp')
-    .controller('ChatController', ['$scope', 'ChatService', '$timeout', '$rootScope', 'AuthService', function($scope, ChatService, $timeout, $rootScope, AuthService) {
+    .controller('ChatController', ['$scope', 'ChatService', '$timeout', '$rootScope', 'AuthService', '$state', function($scope, ChatService, $timeout, $rootScope, AuthService, $state) {
         $scope.messages = [];
         $scope.userInput = '';
         $scope.isLoading = false;
@@ -74,6 +74,7 @@ angular.module('chatApp')
             AuthService.logout().then(function() {
                 $rootScope.authenticated = false;
                 $rootScope.currentUser = null;
+                $state.go('login');
             });
         };
 

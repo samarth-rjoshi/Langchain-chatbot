@@ -1,166 +1,137 @@
-# LangChain Documentation Chatbot
+## LangChain Documentation Chatbot
 
-A sophisticated chatbot application built using LangChain, LangGraph, Flask, and Angular that provides intelligent responses to queries about LangChain documentation. The chatbot uses advanced language models, vector stores, and a custom LangGraph workflow to deliver accurate and context-aware answers.
+A lightweight documentation-focused chatbot built with LangChain, LangGraph, a Flask-based backend, and a Vite-powered AngularJS frontend.
 
-## Features
+This repository contains a RAG (Retrieval-Augmented Generation) workflow that uses Qdrant for vector storage and OpenAI models for embeddings and generation.
 
-- 🤖 Interactive chatbot interface using Angular
-- 🔄 LangGraph-powered RAG (Retrieval-Augmented Generation) workflow
-- 🌐 Flask REST API backend
-- 📚 Comprehensive LangChain documentation coverage
-- 🔍 Vector search using Qdrant for efficient document retrieval
-- 🎯 Context-aware responses using OpenAI models
-- 💾 Persistent chat history
-- 🎨 Beautiful and responsive UI
+## What's changed
 
-## Project Structure
+- Clarified setup steps and requirements (use `backend/pyproject.toml` for Python deps).
+- Documented the available convenience scripts (`build.sh`, `run.sh`) and recommended usage.
+- Fixed a few references (frontend uses AngularJS + Vite, not modern Angular CLI).
 
-```
-├── backend/
-│   ├── api/                    # Flask REST API
-│   │   ├── app.py             # Main Flask application
-│   │   ├── run.sh             # Unix startup script
-│   │   ├── run.bat            # Windows startup script
-│   │   └── README.md          # API documentation
-│   ├── langgraph_comp/        # LangGraph workflow
-│   │   └── graph.py           # RAG workflow implementation
-│   ├── data_insertion/        # Data processing and insertion
-│   │   ├── db_operations.py   # Qdrant database operations
-│   │   ├── insertion.py       # Document insertion logic
-│   │   └── data/              # Documentation data
-│   └── main.py                # Backend entry point
-├── frontend/                   # Angular frontend
-│   ├── src/
-│   │   ├── app.js             # Angular application
-│   │   └── style.css          # Styles
-│   ├── index.html             # Main HTML file
-│   └── package.json           # Frontend dependencies
-├── requirements.txt           # Python dependencies
-└── README.md                  # This file
-```
-
-## Prerequisites
-
-- Python 3.11+
-- Node.js 18+ and npm
-- OpenAI API access
-- Qdrant cloud account and API keys
-
-## Installation
+## Quick start (recommended)
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
-cd langchain-chatbot
+cd Langchain-chatbot
 ```
 
-2. Create and activate a virtual environment:
+2. Run the setup helper (creates venv, installs Python and Node deps):
+
+```bash
+chmod +x build.sh
+./build.sh setup
+```
+
+3. Start both services (background) with the helper:
+
+```bash
+./build.sh start
+```
+
+Logs are written to `./logs` and PIDs are stored in `./.service_pids`.
+
+Use `./build.sh stop` to stop the services started by `start`.
+
+## Manual setup
+
+Prerequisites:
+
+- Python 3.12+
+- Node.js 18+ and npm (or pnpm)
+- OpenAI API access (or another compatible model endpoint)
+- Qdrant instance (cloud or local) if you want vector search
+
+Backend (Python)
+
+1. Create and activate a virtual environment:
+
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate
 ```
 
-3. Install dependencies:
+2. Install the backend package (uses the project `pyproject.toml` in `backend/`):
+
 ```bash
-pip install -r requirements.txt
+pip install -e ./backend
 ```
 
-4. Install frontend dependencies:
-```bash
-cd frontend
-npm install
-cd ..
-```
+3. Create a `.env` file inside `backend/` with your secrets (example):
 
-5. Set up environment variables:
-Create a `.env` file in the `backend` directory and add your API keys:
 ```env
 OPENAI_API_KEY=your_openai_api_key
 OPENAI_API_BASE=https://api.openai.com/v1
 EMBEDDING_MODEL=text-embedding-ada-002
 GENERATION_MODEL=gpt-3.5-turbo
-QDRANT_URL=your_qdrant_url
+QDRANT_URL=https://your-qdrant-host
 QDRANT_API_KEY=your_qdrant_api_key
 ```
 
-## Running the Application
+4. Run the backend API (from project root):
 
-### Backend (Flask API)
-
-1. Start the Flask API server:
-
-**On Unix/Linux/Mac:**
-```bash
-cd backend/api
-./run.sh
-```
-
-**On Windows:**
-```bash
-cd backend\api
-run.bat
-```
-
-**Or directly with Python:**
 ```bash
 python backend/api/app.py
 ```
 
-The API will be available at `http://localhost:8000`
+By default the API listens on http://localhost:8000 (check `backend/api/app.py` for exact settings).
 
-### Frontend (Angular)
+Frontend (AngularJS + Vite)
 
-1. In a new terminal, start the frontend development server:
+1. Install dependencies and run the dev server:
+
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173`
+2. Open the app in your browser (Vite default):
 
-2. Open your browser and navigate to `http://localhost:5173` to use the chatbot!
+http://localhost:5173
 
-## Features in Detail
+## Project layout (high level)
 
-### LangGraph Workflow
-- Custom RAG workflow with retrieve and generate nodes
-- Efficient document retrieval from Qdrant vector store
-- Context-aware answer generation using OpenAI models
-- Seamless integration with Flask API
+```
+├── backend/
+│   ├── api/                 # Flask REST API (entry: backend/api/app.py)
+│   ├── data_insertion/      # Scripts to prepare and insert data into Qdrant
+│   └── langgraph_comp/      # LangGraph workflow definitions
+├── frontend/                # AngularJS + Vite frontend (src/, index.html)
+├── build.sh                 # Helper to setup and run services
+├── run.sh                   # Convenience script to run backend+frontend (legacy)
+└── logs/                    # Log files created by the helper scripts
+```
 
-### REST API (Flask)
-- **POST /chat**: Main endpoint for chatbot interactions
-- **GET /health**: Health check endpoint
-- CORS-enabled for frontend communication
-- Error handling and logging
+## Data insertion
 
-### Vector Store Integration
-- Uses Qdrant as a vector store for efficient document retrieval
-- Supports multiple collections for different documentation sources
-- Implements semantic search for accurate document matching
+Data insertion utilities live under `backend/data_insertion`. Use `insertion.py` and `db_operations.py` to index documents into Qdrant. The `backend/data_insertion/data/` folder contains example text and PDF sources organized by topic.
 
-### User Interface (Angular)
-- Clean and modern design with custom CSS styling
-- Real-time chat interface with loading indicators
-- Message timestamps
-- Responsive design for all screen sizes
+## API endpoints
+
+- POST /chat — send a user message and receive a response (RAG flow)
+- GET /health — health check
+
+See `backend/api/README.md` for details on request/response shapes and examples.
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+Contributions are welcome. A minimal workflow:
+
+1. Fork the repo
+2. Create a feature branch
+3. Add tests (where applicable)
+4. Open a pull request
+
+Please follow existing code style and include a short description of your changes.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT
 
-## Acknowledgments
+## Notes and next steps
 
-- LangChain team for the excellent framework
-- Haystack team for their contribution to NLP
-- Streamlit team for the amazing web framework
-- HuggingFace for providing access to state-of-the-art language models
-- Qdrant team for their vector database solution
+- If you'd like, I can: update `backend/api/README.md` with concrete cURL examples, add a small health-check test, or create a short `DEVELOPMENT.md` with common debugging steps.

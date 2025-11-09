@@ -11,8 +11,12 @@ from openai import OpenAI
 import PyPDF2
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from tqdm import tqdm
+import logging
 
-load_dotenv()
+from logging_config import get_logger
+
+logger = get_logger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 qdrant_url = os.getenv("QDRANT_URL")
 qdrant_api_key = os.getenv("QDRANT_API_KEY")
@@ -31,7 +35,7 @@ def get_embedding(text, model=embedding_model):
         response = client.embeddings.create(input=[text], model=model)
         return response.data[0].embedding
     except Exception as e:
-        print(f"Error generating embedding: {e}")
+        logger.exception("Error generating embedding: %s", e)
         return None
 
 def extract_text_from_pdf(pdf_path: str) -> str:
@@ -44,7 +48,7 @@ def extract_text_from_pdf(pdf_path: str) -> str:
                 text += page.extract_text() + "\n"
         return text.strip()
     except Exception as e:
-        print(f"Error extracting text from {pdf_path}: {e}")
+        logger.exception("Error extracting text from %s: %s", pdf_path, e)
         return ""
 
 def chunk_text(text: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> List[str]:
@@ -72,30 +76,30 @@ def create_collection_if_not_exists():
         collection_names = [col.name for col in collections.collections]
         
         if COLLECTION_NAME not in collection_names:
-            print(f"Creating collection: {COLLECTION_NAME}")
+            logger.info("Creating collection: %s", COLLECTION_NAME)
             qdrant_client.create_collection(
                 collection_name=COLLECTION_NAME,
                 vectors_config=VectorParams(size=1024, distance=Distance.COSINE),
             )
-            print(f"Collection '{COLLECTION_NAME}' created successfully")
+            logger.info("Collection '%s' created successfully", COLLECTION_NAME)
         else:
-            print(f"Collection '{COLLECTION_NAME}' already exists")
+            logger.info("Collection '%s' already exists", COLLECTION_NAME)
     except Exception as e:
-        print(f"Error creating collection: {e}")
+        logger.exception("Error creating collection: %s", e)
 
 def process_pdf_file(pdf_path: str, base_folder: str) -> List[Dict[str, Any]]:
     """Process a single PDF file and return chunks with metadata"""
-    print(f"Processing: {pdf_path}")
+    logger.info("Processing: %s", pdf_path)
     
     # Extract text from PDF
     text = extract_text_from_pdf(pdf_path)
     if not text:
-        print(f"No text extracted from {pdf_path}")
+        logger.warning("No text extracted from %s", pdf_path)
         return []
     
     # Chunk the text
     chunks = chunk_text(text)
-    print(f"Created {len(chunks)} chunks from {pdf_path}")
+    logger.info("Created %d chunks from %s", len(chunks), pdf_path)
     
     # Prepare data for Qdrant
     points_data = []
@@ -126,7 +130,7 @@ def insert_points_to_qdrant(points_data: List[Dict[str, Any]], batch_size: int =
     if not points_data:
         return
     
-    print(f"Inserting {len(points_data)} points to Qdrant...")
+    logger.info("Inserting %d points to Qdrant...", len(points_data))
     
     # Process in batches
     for i in tqdm(range(0, len(points_data), batch_size), desc="Inserting batches"):
@@ -149,7 +153,7 @@ def insert_points_to_qdrant(points_data: List[Dict[str, Any]], batch_size: int =
                 points=points,
             )
         except Exception as e:
-            print(f"Error inserting batch {i//batch_size + 1}: {e}")
+            logger.exception("Error inserting batch %d: %s", i//batch_size + 1, e)
 
 # Initialize Qdrant client
 qdrant_client = QdrantClient(
@@ -159,7 +163,7 @@ qdrant_client = QdrantClient(
 
 def main():
     """Main function to process all PDF files and insert into Qdrant"""
-    print("Starting PDF to Qdrant insertion process...")
+    logger.info("Starting PDF to Qdrant insertion process...")
     
     # Create collection if it doesn't exist
     create_collection_if_not_exists()
@@ -170,10 +174,10 @@ def main():
     pdf_files = find_all_pdf_files(data_folder)
     
     if not pdf_files:
-        print("No PDF files found in the data folder")
+        logger.warning("No PDF files found in the data folder")
         return
     
-    print(f"Found {len(pdf_files)} PDF files to process")
+    logger.info("Found %d PDF files to process", len(pdf_files))
     
     # Process all PDF files
     all_points_data = []
@@ -183,17 +187,17 @@ def main():
             points_data = process_pdf_file(pdf_file, data_folder)
             all_points_data.extend(points_data)
         except Exception as e:
-            print(f"Error processing {pdf_file}: {e}")
+            logger.exception("Error processing %s: %s", pdf_file, e)
             continue
     
-    print(f"Total points to insert: {len(all_points_data)}")
+    logger.info("Total points to insert: %d", len(all_points_data))
     
     # Insert all points to Qdrant
     if all_points_data:
         insert_points_to_qdrant(all_points_data)
-        print("PDF insertion to Qdrant completed successfully!")
+        logger.info("PDF insertion to Qdrant completed successfully!")
     else:
-        print("No data to insert")
+        logger.info("No data to insert")
 
 # Run the main function
 if __name__ == "__main__":

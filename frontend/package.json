@@ -12,7 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "angular": "^1.8.3"
+    "angular": "^1.8.3",
+    "@uirouter/angularjs": "^1.0.29"
   },
   "devDependencies": {
     "vite": "^5.0.0"

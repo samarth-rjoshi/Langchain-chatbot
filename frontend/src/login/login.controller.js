@@ -1,11 +1,17 @@
 import angular from 'angular';
 
 angular.module('chatApp')
-    .controller('LoginController', ['$scope', 'AuthService', '$rootScope', function($scope, AuthService, $rootScope) {
+    .controller('LoginController', ['$scope', 'AuthService', '$rootScope', '$state', function($scope, AuthService, $rootScope, $state) {
         $scope.username = '';
         $scope.password = '';
         $scope.error = '';
         $scope.isLoading = false;
+
+        // If already authenticated, go to chat
+        if ($rootScope.authenticated) {
+            $state.go('chat');
+            return;
+        }
 
         $scope.login = function() {
             if (!$scope.username.trim() || !$scope.password.trim()) {
@@ -21,6 +27,8 @@ angular.module('chatApp')
                     $scope.isLoading = false;
                     $rootScope.authenticated = true;
                     $rootScope.currentUser = response.username;
+                    // Navigate to chat state
+                    $state.go('chat');
                 })
                 .catch(function(error) {
                     $scope.isLoading = false;

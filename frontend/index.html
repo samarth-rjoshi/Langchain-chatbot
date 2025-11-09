@@ -7,13 +7,7 @@
     <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
-    <div ng-if="!authenticated">
-        <login-widget></login-widget>
-    </div>
-    
-    <div ng-if="authenticated">
-        <chat-widget></chat-widget>
-    </div>
+    <div ui-view></div>
     
     <script type="module" src="/src/app.js"></script>
     <script type="module" src="/src/auth.service.js"></script>

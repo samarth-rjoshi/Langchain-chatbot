@@ -74,3 +74,4 @@ env.bak/
 venv.bak/
 
 backend/data_insertion/data/
+/logs

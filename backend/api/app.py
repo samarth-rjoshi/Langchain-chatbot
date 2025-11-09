@@ -9,10 +9,15 @@ from functools import wraps
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from langgraph_comp.graph import langchain_graph
+import logging
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-' + str(uuid.uuid4()))
 CORS(app, supports_credentials=True)
+
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 def login_required(f):
     """Decorator to check if user is logged in"""
@@ -61,7 +66,7 @@ def login():
         session['username'] = username
         session['logged_in'] = True
         
-        print(f"User logged in: {username} (session_id: {session_id})")
+        logger.info("User logged in: %s (session_id: %s)", username, session_id)
         
         # Create response with JSON data
         response = make_response(jsonify({
@@ -74,7 +79,7 @@ def login():
         return response
         
     except Exception as e:
-        print(f"Error in login endpoint: {str(e)}")
+        logger.exception("Error in login endpoint: %s", str(e))
         return jsonify({
             'error': str(e),
             'message': 'Sorry, I encountered an error processing your login request.'
@@ -90,7 +95,7 @@ def logout():
         username = session.get('username', 'Unknown')
         session.clear()
         
-        print(f"User logged out: {username}")
+        logger.info("User logged out: %s", username)
         
         response = make_response(jsonify({
             'status': 'success',
@@ -101,7 +106,7 @@ def logout():
         return response
         
     except Exception as e:
-        print(f"Error in logout endpoint: {str(e)}")
+        logger.exception("Error in logout endpoint: %s", str(e))
         return jsonify({
             'error': str(e),
             'message': 'Sorry, I encountered an error processing your logout request.'
@@ -149,7 +154,7 @@ def chat():
                 'response': 'Please provide a non-empty message.'
             }), 400
         
-        print(f"Received message: {user_message}")
+        logger.info("Received message: %s", user_message)
         
         # Call the langgraph graph with the user's query
         result = langchain_graph.invoke({"query": user_message})
@@ -157,7 +162,7 @@ def chat():
         # Extract the answer from the result
         bot_response = result.get("answer", "I'm sorry, I couldn't generate a response.")
         
-        print(f"Generated response: {bot_response}")
+        logger.info("Generated response: %s", bot_response)
         
         # Return the response (session is already set during login)
         return jsonify({
@@ -166,7 +171,7 @@ def chat():
         }), 200
         
     except Exception as e:
-        print(f"Error in chat endpoint: {str(e)}")
+        logger.exception("Error in chat endpoint: %s", str(e))
         return jsonify({
             'error': str(e),
             'response': 'Sorry, I encountered an error processing your request.'
@@ -182,8 +187,13 @@ def health():
         'message': 'Langchain chatbot API is running'
     }), 200
 
+
+# Frontend log endpoint removed — frontend logs are not required per project configuration.
+
 if __name__ == '__main__':
-    print("Starting Flask API server...")
-    print("API will be available at http://localhost:8000")
+    # Configure logging for standalone run
+    logging.basicConfig(level=logging.INFO)
+    logger.info("Starting Flask API server...")
+    logger.info("API will be available at http://localhost:8000")
     app.run(host='0.0.0.0', port=8000, debug=True)
 

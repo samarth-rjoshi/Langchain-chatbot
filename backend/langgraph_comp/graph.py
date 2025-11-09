@@ -10,6 +10,7 @@ import re
 # Import functions from data_insertion folder
 from data_insertion.db_operations import query_documents
 from data_insertion.insertion import qdrant_client
+from logging_config import get_logger
 
 load_dotenv()
 
@@ -32,12 +33,15 @@ class State(TypedDict):
     answer: str
 
 
+logger = get_logger(__name__)
+
+
 def retrieve(state):
     """
     Retrieve relevant documents from Qdrant based on the query.
     Uses functions from data_insertion folder.
     """
-    print(f"Retrieving documents for query: {state['query']}")
+    logger.info("Retrieving documents for query: %s", state.get('query'))
 
     query = state['query']
     results = query_documents(query=query)
@@ -49,7 +53,7 @@ def generate(state):
     """
     Generate an answer based on the query and retrieved documents.
     """
-    print(f"Generating answer...")
+    logger.info("Generating answer...")
     
     query = state['query']
     retrieved_docs = state['retrieved_docs']
@@ -70,7 +74,7 @@ def generate(state):
         state['answer'] = clean_text
         return state
     except Exception as e:
-        print(f"Error generating answer: {e}")
+        logger.exception("Error generating answer: %s", e)
         state['answer'] = "Sorry, I encountered an error while generating the answer."
         return state
 

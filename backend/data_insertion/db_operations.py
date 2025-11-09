@@ -15,6 +15,9 @@ COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 # Initialize clients
 client = OpenAI(base_url=OPENAI_API_BASE, api_key=OPENAI_API_KEY)
 qdrant_client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 def create_embedding(text, model=embedding_model):
     """Generate embedding for text using OpenAI API"""
@@ -23,7 +26,7 @@ def create_embedding(text, model=embedding_model):
         response = client.embeddings.create(input=[text], model=model)
         return response.data[0].embedding
     except Exception as e:
-        print(f"Error generating embedding: {e}")
+        logger.exception("Error generating embedding: %s", e)
         return None
 
 def query_documents(query):
@@ -46,7 +49,7 @@ def query_documents(query):
 
         return results
     except Exception as e:
-        print(f"Error querying documents: {e}")
+        logger.exception("Error querying documents: %s", e)
         return None
     
     
