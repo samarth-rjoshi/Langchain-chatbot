@@ -4,6 +4,7 @@ import sys
 import os
 import uuid
 from functools import wraps
+from flask_security import Security, MongoEngineUserDatastore, login_user, logout_user, auth_required, current_user, hash_password, verify_password
 
 # Add parent directory to path to import langgraph_comp
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,23 +14,38 @@ import logging
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-' + str(uuid.uuid4()))
+app.config['SECURITY_PASSWORD_SALT'] = os.environ.get('SECURITY_PASSWORD_SALT', 'dev-salt-change-in-production')
+app.config['MONGODB_HOST'] = "mongodb+srv://samarth_joshi:90gehrNj2mo7rxFQ@cluster0.8dnwn3w.mongodb.net/?retryWrites=true&w=majority"
+
+# Flask-Security Config
+app.config['SECURITY_REGISTERABLE'] = True
+app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
+app.config['SECURITY_USERNAME_ENABLE'] = True
+app.config['SECURITY_PASSWORD_HASH'] = 'pbkdf2_sha512'
+app.config['SECURITY_URL_PREFIX'] = '/security'
+
+# JSON API mode (useful for frontends / mobile / SPA)
+app.config['SECURITY_JSON_API'] = True
+app.config['WTF_CSRF_ENABLED'] = False
+
+# Use centralized models module
+from models import init_db, User
+
+# Initialize MongoDB connection
+init_db(app)
+
+# Create User datastore and Security
+# Pass None for role_model to disable roles
+user_datastore = MongoEngineUserDatastore(None, User, None)
+security = Security(app, user_datastore)
+
 CORS(app, supports_credentials=True)
 
 from logging_config import get_logger
 
 logger = get_logger(__name__)
 
-def login_required(f):
-    """Decorator to check if user is logged in"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return jsonify({
-                'error': 'Authentication required',
-                'response': 'Please log in to access this resource.'
-            }), 401
-        return f(*args, **kwargs)
-    return decorated_function
+# Custom login_required removed in favor of Flask-Security's auth_required or login_required
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -41,42 +57,33 @@ def login():
     try:
         data = request.get_json()
         
-        if not data or 'username' not in data or 'password' not in data:
+        if not data or ('username' not in data and 'email' not in data) or 'password' not in data:
             return jsonify({
                 'error': 'Missing credentials',
-                'message': 'Please provide both username and password.'
+                'message': 'Please provide username/email and password.'
             }), 400
         
-        username = data['username']
+        # Support both username and email login
+        identifier = data.get('username') or data.get('email')
         password = data['password']
         
-        # Simple authentication (in production, use proper password hashing and database)
-        # For demo purposes, accept any non-empty username/password
-        if not username.strip() or not password.strip():
-            return jsonify({
+        user = user_datastore.find_user(email=identifier) or user_datastore.find_user(username=identifier)
+
+        if not user or not verify_password(password, user.password):
+             return jsonify({
                 'error': 'Invalid credentials',
-                'message': 'Username and password cannot be empty.'
+                'message': 'Invalid username or password.'
             }), 401
+
+        login_user(user)
         
-        # Generate session ID
-        session_id = str(uuid.uuid4())
+        logger.info("User logged in: %s", user.email)
         
-        # Store user info in session
-        session['user_id'] = session_id
-        session['username'] = username
-        session['logged_in'] = True
-        
-        logger.info("User logged in: %s (session_id: %s)", username, session_id)
-        
-        # Create response with JSON data
-        response = make_response(jsonify({
+        return jsonify({
             'status': 'success',
             'message': 'Login successful',
-            'username': username
-        }), 200)
-        
-        
-        return response
+            'username': user.username or user.email
+        }), 200
         
     except Exception as e:
         logger.exception("Error in login endpoint: %s", str(e))
@@ -85,6 +92,26 @@ def login():
             'message': 'Sorry, I encountered an error processing your login request.'
         }), 500
 
+@app.route('/register', methods=['POST'])
+def register():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        username = data.get('username')
+        password = data.get('password')
+
+        if not email or not password:
+             return jsonify({'message': 'Email and password are required'}), 400
+
+        if user_datastore.find_user(email=email):
+            return jsonify({'message': 'User already exists'}), 400
+            
+        user_datastore.create_user(email=email, username=username, password=hash_password(password))
+        return jsonify({'message': 'User created successfully'}), 201
+    except Exception as e:
+        logger.exception("Error in register endpoint: %s", str(e))
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/logout', methods=['POST'])
 def logout():
     """
@@ -92,16 +119,14 @@ def logout():
     Returns JSON: { "status": "success", "message": "Logged out successfully" }
     """
     try:
-        username = session.get('username', 'Unknown')
-        session.clear()
+        logout_user()
         
-        logger.info("User logged out: %s", username)
+        logger.info("User logged out")
         
         response = make_response(jsonify({
             'status': 'success',
             'message': 'Logged out successfully'
         }), 200)
-        
         
         return response
         
@@ -118,10 +143,10 @@ def check_auth():
     Check if user is authenticated.
     Returns JSON: { "authenticated": true/false, "username": "username" }
     """
-    if 'logged_in' in session and session['logged_in']:
+    if current_user.is_authenticated:
         return jsonify({
             'authenticated': True,
-            'username': session.get('username', 'Unknown')
+            'username': current_user.username or current_user.email
         }), 200
     else:
         return jsonify({
@@ -129,7 +154,7 @@ def check_auth():
         }), 200
 
 @app.route('/chat', methods=['POST'])
-@login_required
+@auth_required()
 def chat():
     """
     Chat endpoint that receives user messages and returns bot responses.

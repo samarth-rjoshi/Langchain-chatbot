@@ -1,17 +1,33 @@
 <div class="login-container">
     <div class="login-card">
         <div class="login-header">
-            <h1>Welcome Back</h1>
-            <p>Sign in to access the Langchain Chatbot</p>
+            <h1>{{ isSignup ? 'Create Account' : 'Welcome Back' }}</h1>
+            <p>{{ isSignup ? 'Sign up to access the Langchain Chatbot' : 'Sign in to access the Langchain Chatbot' }}</p>
         </div>
         
-        <form ng-submit="login()" class="login-form">
+        <form name="loginForm" ng-submit="submit()" class="login-form">
+            <div class="form-group" ng-if="isSignup">
+                <label for="email">Email</label>
+                <input 
+                    type="email" 
+                    id="email"
+                    name="email"
+                    ng-model="credentials.email" 
+                    placeholder="Enter your email"
+                    class="form-input"
+                    ng-disabled="isLoading"
+                    ng-keypress="handleKeyPress($event)"
+                    ng-required="isSignup"
+                >
+            </div>
+
             <div class="form-group">
                 <label for="username">Username</label>
                 <input 
                     type="text" 
                     id="username"
-                    ng-model="username" 
+                    name="username"
+                    ng-model="credentials.username" 
                     placeholder="Enter your username"
                     class="form-input"
                     ng-disabled="isLoading"
@@ -26,7 +42,8 @@
                 <input 
                     type="password" 
                     id="password"
-                    ng-model="password" 
+                    name="password"
+                    ng-model="credentials.password" 
                     placeholder="Enter your password"
                     class="form-input"
                     ng-disabled="isLoading"
@@ -42,14 +59,14 @@
             <button 
                 type="submit" 
                 class="login-button"
-                ng-disabled="!username || !password || isLoading">
-                <span ng-if="!isLoading">Sign In</span>
-                <span ng-if="isLoading">Signing in...</span>
+                ng-disabled="loginForm.$invalid || isLoading">
+                <span ng-if="!isLoading">{{ isSignup ? 'Sign Up' : 'Sign In' }}</span>
+                <span ng-if="isLoading">{{ isSignup ? 'Creating account...' : 'Signing in...' }}</span>
             </button>
         </form>
         
         <div class="login-footer">
-            <p>Demo: Enter any username and password to continue</p>
+            <p>{{ isSignup ? 'Already have an account?' : "Don't have an account?" }} <a href="" ng-click="toggleSignup()">{{ isSignup ? 'Sign In' : 'Sign Up' }}</a></p>
         </div>
     </div>
 </div>

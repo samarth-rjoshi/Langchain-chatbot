@@ -1,19 +1,19 @@
 import angular from 'angular';
 
 angular.module('chatApp')
-    .service('AuthService', ['$http', '$q', function($http, $q) {
+    .service('AuthService', ['$http', '$q', function ($http, $q) {
         const API_BASE_URL = 'http://localhost:8000';
-        
+
         let currentUser = null;
         let isAuthenticated = false;
 
-        this.login = function(username, password) {
-            return $http.post(`${API_BASE_URL}/login`, { 
-                username: username, 
-                password: password 
+        this.login = function (username, password) {
+            return $http.post(`${API_BASE_URL}/login`, {
+                username: username,
+                password: password
             }, {
                 withCredentials: true
-            }).then(function(response) {
+            }).then(function (response) {
                 if (response.data.status === 'success') {
                     currentUser = response.data.username;
                     isAuthenticated = true;
@@ -23,20 +23,32 @@ angular.module('chatApp')
             });
         };
 
-        this.logout = function() {
+        this.register = function (email, username, password) {
+            return $http.post(`${API_BASE_URL}/register`, {
+                email: email,
+                username: username,
+                password: password
+            }, {
+                withCredentials: true
+            }).then(function (response) {
+                return response.data;
+            });
+        };
+
+        this.logout = function () {
             return $http.post(`${API_BASE_URL}/logout`, {}, {
                 withCredentials: true
-            }).then(function(response) {
+            }).then(function (response) {
                 currentUser = null;
                 isAuthenticated = false;
                 return response.data;
             });
         };
 
-        this.checkAuth = function() {
+        this.checkAuth = function () {
             return $http.get(`${API_BASE_URL}/check-auth`, {
                 withCredentials: true
-            }).then(function(response) {
+            }).then(function (response) {
                 if (response.data.authenticated) {
                     currentUser = response.data.username;
                     isAuthenticated = true;
@@ -48,11 +60,11 @@ angular.module('chatApp')
             });
         };
 
-        this.isAuthenticated = function() {
+        this.isAuthenticated = function () {
             return isAuthenticated;
         };
 
-        this.getCurrentUser = function() {
+        this.getCurrentUser = function () {
             return currentUser;
         };
     }]);

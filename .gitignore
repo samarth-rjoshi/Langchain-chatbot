@@ -75,3 +75,4 @@ venv.bak/
 
 backend/data_insertion/data/
 /logs
+cookies.txt
