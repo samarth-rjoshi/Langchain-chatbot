@@ -15,7 +15,7 @@ import logging
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-' + str(uuid.uuid4()))
 app.config['SECURITY_PASSWORD_SALT'] = os.environ.get('SECURITY_PASSWORD_SALT', 'dev-salt-change-in-production')
-app.config['MONGODB_HOST'] = "mongodb+srv://samarth_joshi:90gehrNj2mo7rxFQ@cluster0.8dnwn3w.mongodb.net/?retryWrites=true&w=majority"
+app.config['MONGODB_HOST'] = os.getenv("MONGO_URI")
 
 # Flask-Security Config
 app.config['SECURITY_REGISTERABLE'] = True
