@@ -121,7 +121,7 @@ def logout():
     try:
         logout_user()
         
-        logger.info("User logged out")
+        logger.info("User logged in: %s", user.email if 'user' in locals() else 'Unknown')
         
         response = make_response(jsonify({
             'status': 'success',

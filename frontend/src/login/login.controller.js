@@ -1,7 +1,7 @@
 import angular from 'angular';
 
 angular.module('chatApp')
-    .controller('LoginController', ['$scope', 'AuthService', '$rootScope', '$state', function ($scope, AuthService, $rootScope, $state) {
+    .controller('LoginController', ['$scope', 'AuthService', '$state', function ($scope, AuthService, $state) {
         $scope.credentials = {
             username: '',
             password: '',
@@ -12,7 +12,7 @@ angular.module('chatApp')
         $scope.isLoading = false;
 
         // If already authenticated, go to chat
-        if ($rootScope.authenticated) {
+        if (AuthService.isAuthenticated()) {
             $state.go('chat');
             return;
         }
@@ -57,8 +57,6 @@ angular.module('chatApp')
                 AuthService.login($scope.credentials.username, $scope.credentials.password)
                     .then(function (response) {
                         $scope.isLoading = false;
-                        $rootScope.authenticated = true;
-                        $rootScope.currentUser = response.username;
                         // Navigate to chat state
                         $state.go('chat');
                     })

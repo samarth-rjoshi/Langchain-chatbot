@@ -3,7 +3,7 @@ import uiRouter from '@uirouter/angularjs';
 
 const app = angular.module('chatApp', [uiRouter]);
 
-app.config(['$stateProvider', '$urlServiceProvider', function($stateProvider, $urlServiceProvider) {
+app.config(['$stateProvider', '$urlServiceProvider', function ($stateProvider, $urlServiceProvider) {
     $stateProvider
         .state('login', {
             url: '/login',
@@ -19,11 +19,9 @@ app.config(['$stateProvider', '$urlServiceProvider', function($stateProvider, $u
     $urlServiceProvider.rules.otherwise('/login');
 }]);
 
-app.run(['AuthService', '$rootScope', '$transitions', '$state', function(AuthService, $rootScope, $transitions, $state) {
+app.run(['AuthService', '$transitions', '$state', function (AuthService, $transitions, $state) {
     // Check authentication status on app start
-    AuthService.checkAuth().then(function(authData) {
-        $rootScope.authenticated = authData.authenticated;
-        $rootScope.currentUser = authData.username || null;
+    AuthService.checkAuth().then(function (authData) {
         // Redirect based on auth status
         if (authData.authenticated) {
             $state.go('chat');
@@ -32,17 +30,10 @@ app.run(['AuthService', '$rootScope', '$transitions', '$state', function(AuthSer
         }
     });
 
-    // Expose auth functions to root scope
-    $rootScope.logout = function() {
-        AuthService.logout().then(function() {
-            $rootScope.authenticated = false;
-            $rootScope.currentUser = null;
-            $state.go('login');
-        });
-    };
+    // $rootScope.logout removed. Logout is handled by components/controllers directly via AuthService.
 
     // Transition guard: redirect to login if state requires auth
-    $transitions.onStart({}, function(trans) {
+    $transitions.onStart({}, function (trans) {
         const toState = trans.to();
         const requiresAuth = toState.data && toState.data.requiresAuth;
         if (requiresAuth && !AuthService.isAuthenticated()) {
