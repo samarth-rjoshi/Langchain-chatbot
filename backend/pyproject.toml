@@ -21,4 +21,5 @@ dependencies = [
     "email-validator>=2.1.0.post1",
     "setuptools>=65.0.0",
     "qdrant-client>=1.15.1",
+    "langgraph-checkpoint-mongodb>=0.3.0",
 ]
