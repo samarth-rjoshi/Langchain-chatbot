@@ -18,21 +18,6 @@ A powerful, production-ready RAG (Retrieval-Augmented Generation) chatbot design
   - **Backend**: Flask, LangChain, LangGraph, OpenAI, Qdrant, MongoEngine.
   - **Frontend**: AngularJS (1.x), Vite, TailwindCSS (optional/custom).
 
-## 🏗️ Architecture
-
-```mermaid
-graph TD
-    User[User] -->|HTTP/WebSocket| Frontend[Frontend (AngularJS + Vite)]
-    Frontend -->|REST API| Backend[Backend API (Flask)]
-    Backend -->|Auth| MongoDB[(MongoDB)]
-    Backend -->|Orchestration| LangGraph[LangGraph Agent]
-    LangGraph -->|Vector Search| Qdrant[(Qdrant Vector DB)]
-    LangGraph -->|LLM| OpenAI[OpenAI GPT]
-    
-    subgraph "Data Pipeline"
-        Docs[Documents/PDFs] -->|Ingestion Scripts| Qdrant
-    end
-```
 
 ## 🛠️ Prerequisites
 
