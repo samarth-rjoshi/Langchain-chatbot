@@ -53,15 +53,19 @@ cp backend/.env.example backend/.env # if example exists, else create manually
 ```
 **Required `.env` variables:**
 ```env
-OPENAI_API_KEY=sk-...
-OPENAI_API_BASE=https://api.openai.com/v1
-EMBEDDING_MODEL=text-embedding-3-small
-GENERATION_MODEL=gpt-3.5-turbo
-QDRANT_URL=http://localhost:6333
-QDRANT_API_KEY= # Leave empty if local without auth
-MONGO_URI=mongodb://localhost:27017/langchain_chat
-SECRET_KEY=super-secret-key
-SECURITY_PASSWORD_SALT=super-secret-salt
+QDRANT_URL=
+QDRANT_API_KEY=
+EMBEDDING_MODEL=
+OPENAI_API_KEY=
+OPENAI_API_BASE=
+COLLECTION_NAME=
+GENERATION_MODEL=
+LANGSMITH_TRACING=
+LANGSMITH_ENDPOINT=
+LANGSMITH_API_KEY=
+
+MONGO_URI=
+
 ```
 
 ### 4. Start the Application
@@ -113,6 +117,7 @@ Langchain-chatbot/
 │   ├── langgraph_comp/      # LangGraph agent definitions & logic
 │   ├── models.py            # Database models (User, Chat)
 │   └── pyproject.toml       # Python dependencies
+|   |__ evaluators           # LLM as a judge evaluation
 ├── frontend/
 │   ├── src/                 # AngularJS components & logic
 │   ├── index.html           # Entry HTML
@@ -131,16 +136,14 @@ To populate the chatbot with knowledge, use the scripts in `backend/data_inserti
    cd backend
    python data_insertion/insertion.py
    ```
+## 🧪 Running LangSmith Evaluations
 
-## 🤝 Contributing
+We have local evaluation workflows set up using **LangSmith's LLM-as-a-judge**. This evaluates the RAG accuracy, relevance, and hallucination footprint against your documents.
 
-Contributions are welcome! Please follow these steps:
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature/amazing-feature`).
-3. Commit your changes.
-4. Push to the branch.
-5. Open a Pull Request.
+### How to Evaluate
+1. Make sure your local endpoint (e.g., LM studio) and your Qdrant instance are reachable.
+2. Run the evaluator module:
+   ```bash
+   python -m evaluators.evaluate_rag
+   ```
 
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
