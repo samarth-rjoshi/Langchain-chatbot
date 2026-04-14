@@ -54,6 +54,10 @@ def retrieve(state):
     return state
 
 
+PROMPT_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "rag_prompt.md")
+with open(PROMPT_PATH, "r", encoding="utf-8") as f:
+    RAG_PROMPT_TEMPLATE = f.read()
+
 def generate(state):
     """
     Generate an answer based on the query and retrieved documents.
@@ -64,16 +68,8 @@ def generate(state):
     query = state['query']
     retrieved_docs = state['retrieved_docs']
     try:
-    
-
-        prompt = f"""Based on the following context, please answer the question.
-
-    Context:
-    {retrieved_docs}
-
-    Question: {query}
-
-    Answer:"""
+        
+        prompt = RAG_PROMPT_TEMPLATE.format(context=retrieved_docs, question=query)
         
         response = llm.invoke(prompt)
         clean_text = re.sub(r"<think>.*?</think>", "", response.content, flags=re.DOTALL).strip()
