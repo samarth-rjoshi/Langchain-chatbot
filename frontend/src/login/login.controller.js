@@ -1,77 +1,76 @@
-import angular from 'angular';
+define(['app', 'auth.service'], function (app) {
 
-angular.module('chatApp')
-    .controller('LoginController', ['$scope', 'AuthService', '$state', function ($scope, AuthService, $state) {
-        $scope.credentials = {
-            username: '',
-            password: '',
-            email: ''
-        };
-        $scope.isSignup = false; // Toggle state
-        $scope.error = '';
-        $scope.isLoading = false;
-
-        // If already authenticated, go to chat
-        if (AuthService.isAuthenticated()) {
-            $state.go('chat');
-            return;
-        }
-
-        $scope.toggleSignup = function () {
-            $scope.isSignup = !$scope.isSignup;
-            $scope.error = '';
+    app
+        .controller('LoginController', ['$scope', 'AuthService', '$state', function ($scope, AuthService, $state) {
             $scope.credentials = {
                 username: '',
                 password: '',
                 email: ''
             };
-        };
-
-        $scope.submit = function () {
-            if (!$scope.credentials.username.trim() || !$scope.credentials.password.trim()) {
-                $scope.error = 'Please enter username and password';
-                return;
-            }
-
-            if ($scope.isSignup && !$scope.credentials.email.trim()) {
-                $scope.error = 'Please enter email for signup';
-                return;
-            }
-
+            $scope.isSignup = false;
             $scope.error = '';
-            $scope.isLoading = true;
+            $scope.isLoading = false;
 
-            if ($scope.isSignup) {
-                AuthService.register($scope.credentials.email, $scope.credentials.username, $scope.credentials.password)
-                    .then(function (response) {
-                        $scope.isLoading = false;
-                        $scope.isSignup = false; // Switch to login after success
-                        $scope.error = 'Account created! Please log in.';
-                        $scope.credentials.password = ''; // Clear password
-                    })
-                    .catch(function (error) {
-                        $scope.isLoading = false;
-                        $scope.error = error.message || error.error || 'Signup failed. Please try again.';
-                    });
-            } else {
-                AuthService.login($scope.credentials.username, $scope.credentials.password)
-                    .then(function (response) {
-                        $scope.isLoading = false;
-                        // Navigate to chat state
-                        $state.go('chat');
-                    })
-                    .catch(function (error) {
-                        $scope.isLoading = false;
-                        $scope.error = error.message || error.error || 'Login failed. Please try again.';
-                    });
+            // If already authenticated, go to chat
+            if (AuthService.isAuthenticated()) {
+                $state.go('chat');
+                return;
             }
-        };
 
-        $scope.handleKeyPress = function (event) {
-            if (event.key === 'Enter') {
-                $scope.submit();
-            }
-        };
-    }]);
+            $scope.toggleSignup = function () {
+                $scope.isSignup = !$scope.isSignup;
+                $scope.error = '';
+                $scope.credentials = {
+                    username: '',
+                    password: '',
+                    email: ''
+                };
+            };
 
+            $scope.submit = function () {
+                if (!$scope.credentials.username.trim() || !$scope.credentials.password.trim()) {
+                    $scope.error = 'Please enter username and password';
+                    return;
+                }
 
+                if ($scope.isSignup && !$scope.credentials.email.trim()) {
+                    $scope.error = 'Please enter email for signup';
+                    return;
+                }
+
+                $scope.error = '';
+                $scope.isLoading = true;
+
+                if ($scope.isSignup) {
+                    AuthService.register($scope.credentials.email, $scope.credentials.username, $scope.credentials.password)
+                        .then(function (response) {
+                            $scope.isLoading = false;
+                            $scope.isSignup = false;
+                            $scope.error = 'Account created! Please log in.';
+                            $scope.credentials.password = '';
+                        })
+                        .catch(function (error) {
+                            $scope.isLoading = false;
+                            $scope.error = error.message || error.error || 'Signup failed. Please try again.';
+                        });
+                } else {
+                    AuthService.login($scope.credentials.username, $scope.credentials.password)
+                        .then(function (response) {
+                            $scope.isLoading = false;
+                            $state.go('chat');
+                        })
+                        .catch(function (error) {
+                            $scope.isLoading = false;
+                            $scope.error = error.message || error.error || 'Login failed. Please try again.';
+                        });
+                }
+            };
+
+            $scope.handleKeyPress = function (event) {
+                if (event.key === 'Enter') {
+                    $scope.submit();
+                }
+            };
+        }]);
+
+});

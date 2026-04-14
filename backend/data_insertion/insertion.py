@@ -1,8 +1,16 @@
 import os
+import sys
 import glob
 import uuid
 from typing import List, Dict, Any
 from dotenv import load_dotenv
+
+# 1. Add parent directory (backend) to the python path so it can find logging_config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# 2. Actually call load_dotenv() to load your `.env` variables
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
+
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
@@ -14,6 +22,7 @@ from tqdm import tqdm
 import logging
 
 from logging_config import get_logger
+
 
 logger = get_logger(__name__)
 logging.basicConfig(level=logging.INFO)

@@ -1,13 +1,14 @@
-import angular from 'angular';
+define(['app'], function (app) {
 
-angular.module('chatApp')
-    .service('ChatService', ['$http', function($http) {
-        const API_BASE_URL = 'http://localhost:8000';
+    app
+        .service('ChatService', ['$http', function ($http) {
+            const API_BASE_URL = 'http://localhost:8000';
 
-        this.sendMessage = function(message) {
-            return $http.post(`${API_BASE_URL}/chat`, { message: message }, {
-                withCredentials: true
-            });
-        };
-    }]);
+            this.sendMessage = function (message) {
+                return $http.post(`${API_BASE_URL}/chat`, { message: message }, {
+                    withCredentials: true
+                });
+            };
+        }]);
 
+});

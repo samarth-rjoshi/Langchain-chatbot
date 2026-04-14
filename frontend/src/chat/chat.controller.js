@@ -1,7 +1,6 @@
-import angular from 'angular';
+define(['app', 'chat.service'], function (app) {
 
-angular.module('chatApp')
-    .controller('ChatController', ['$scope', 'ChatService', '$timeout', 'AuthService', '$state', '$http', '$sce', function ($scope, ChatService, $timeout, AuthService, $state, $http, $sce) {
+app.controller('ChatController', ['$scope', 'ChatService', '$timeout', 'AuthService', '$state', '$http', '$sce', function ($scope, ChatService, $timeout, AuthService, $state, $http, $sce) {
         const vm = this;
         $scope.messages = [];
         $scope.userInput = '';
@@ -262,3 +261,5 @@ angular.module('chatApp')
         // Initialize
         $scope.initUser();
     }]);
+
+});

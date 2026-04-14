@@ -1,8 +1,8 @@
-import angular from 'angular';
+define(['app', 'login/login.controller'], function (app) {
 
-angular.module('chatApp')
-    .component('loginWidget', {
+    app.component('loginWidget', {
         templateUrl: '/src/login/login.html',
         controller: 'LoginController'
     });
 
+});

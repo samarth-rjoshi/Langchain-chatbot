@@ -1,9 +1,8 @@
-import angular from 'angular';
+define(['app', 'chat/chat.controller'], function (app) {
 
-angular.module('chatApp')
-    .component('chatWidget', {
+    app.component('chatWidget', {
         templateUrl: '/src/chat/chat.html',
         controller: 'ChatController'
     });
 
-
+});
