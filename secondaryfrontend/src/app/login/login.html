@@ -1,0 +1,81 @@
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1>{{ isSignup() ? 'Create Account' : 'Welcome Back' }}</h1>
+            <p>{{ isSignup() ? 'Sign up to access the Langchain Chatbot' : 'Sign in to access the Langchain Chatbot' }}</p>
+        </div>
+
+        <form (ngSubmit)="submit()" class="login-form" #loginForm="ngForm">
+            @if (isSignup()) {
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        [(ngModel)]="credentials.email"
+                        placeholder="Enter your email"
+                        class="form-input"
+                        [disabled]="isLoading()"
+                        (keypress)="handleKeyPress($event)"
+                        [required]="isSignup()"
+                    >
+                </div>
+            }
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    [(ngModel)]="credentials.username"
+                    placeholder="Enter your username"
+                    class="form-input"
+                    [disabled]="isLoading()"
+                    (keypress)="handleKeyPress($event)"
+                    autofocus
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    [(ngModel)]="credentials.password"
+                    placeholder="Enter your password"
+                    class="form-input"
+                    [disabled]="isLoading()"
+                    (keypress)="handleKeyPress($event)"
+                    required
+                >
+            </div>
+
+            @if (successMessage()) {
+                <div class="success-message">
+                    {{ successMessage() }}
+                </div>
+            }
+
+            <button
+                type="submit"
+                class="login-button"
+                [disabled]="loginForm.invalid || isLoading()">
+                @if (!isLoading()) {
+                    <span>{{ isSignup() ? 'Sign Up' : 'Sign In' }}</span>
+                } @else {
+                    <span>{{ isSignup() ? 'Creating account...' : 'Signing in...' }}</span>
+                }
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <p>{{ isSignup() ? 'Already have an account?' : "Don't have an account?" }}
+                <a href="javascript:void(0)" (click)="toggleSignup()">{{ isSignup() ? 'Sign In' : 'Sign Up' }}</a>
+            </p>
+        </div>
+    </div>
+</div>
